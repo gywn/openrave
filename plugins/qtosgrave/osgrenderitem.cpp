@@ -460,21 +460,38 @@ void KinBodyItem::Load()
 
                     const TriMesh& mesh = orgeom->GetCollisionMesh();
                     osg::ref_ptr<osg::Vec3Array> vertices = new osg::Vec3Array();
-                    vertices->reserveArray(mesh.vertices.size());
-                    for(size_t i = 0; i < mesh.vertices.size(); ++i) {
+                    vertices->reserveArray(mesh.indices.size());
+                    for(const auto i: mesh.indices) {
                         RaveVector<float> v = mesh.vertices[i];
                         vertices->push_back(osg::Vec3(v.x, v.y, v.z));
                     }
                     geom->setVertexArray(vertices.get());
 
+                    osg::ref_ptr<osg::Vec3Array> normals = new osg::Vec3Array();
+                    normals->reserveArray(mesh.indices.size());
+                    size_t triangleN = mesh.indices.size() / 3;
+                    for(size_t i = 0; i < triangleN; ++i) {
+                        const auto va = mesh.vertices[mesh.indices[3*i]];
+                        const auto vb = mesh.vertices[mesh.indices[3*i + 1]];
+                        const auto vc = mesh.vertices[mesh.indices[3*i + 2]];
+                        auto normal = (vb - va) ^ (vc - va);
+                        if (normal.lengthsqr3() != 0.0) {
+                            normal.normalize3();
+                        }
+                        for (size_t j = 0; j < 3; ++j) {
+                            normals->push_back(osg::Vec3(normal.x, normal.y, normal.z));
+                        }
+                    }
+                    geom->setNormalArray(normals.get());
+                    geom->setNormalBinding(osg::Geometry::AttributeBinding::BIND_PER_VERTEX);
 
                     osg::DrawElementsUInt* geom_prim = new osg::DrawElementsUInt(osg::PrimitiveSet::TRIANGLES, mesh.indices.size());
                     for(size_t i = 0; i < mesh.indices.size(); ++i) {
-                        (*geom_prim)[i] = mesh.indices[i];
+                        (*geom_prim)[i] = i;
                     }
                     geom->addPrimitiveSet(geom_prim);
 
-                    osgUtil::SmoothingVisitor::smooth(*geom); // compute vertex normals
+//                    osgUtil::SmoothingVisitor::smooth(*geom); // compute vertex normals
                     osg::ref_ptr<osg::Geode> geode = new osg::Geode;
                     geode->addDrawable(geom);
                     pgeometrydata->addChild(geode);
