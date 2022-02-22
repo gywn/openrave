@@ -868,7 +868,7 @@ void QOSGViewerWidget::SetPolygonMode(int mode)
     {
     case 0:
         poly->setMode(osg::PolygonMode::FRONT_AND_BACK,osg::PolygonMode::FILL);
-        sm->setMode(osg::ShadeModel::SMOOTH);
+        sm->setMode(osg::ShadeModel::FLAT);
         _osgview->getSceneData()->getOrCreateStateSet()->setAttribute(poly);
         _osgview->getSceneData()->getOrCreateStateSet()->setAttribute(sm);
         break;
@@ -880,7 +880,7 @@ void QOSGViewerWidget::SetPolygonMode(int mode)
         break;
     case 2:
         poly->setMode(osg::PolygonMode::FRONT_AND_BACK,osg::PolygonMode::LINE);
-        sm->setMode(osg::ShadeModel::SMOOTH);
+        sm->setMode(osg::ShadeModel::FLAT);
         _osgview->getSceneData()->getOrCreateStateSet()->setAttribute(poly);
         _osgview->getSceneData()->getOrCreateStateSet()->setAttribute(sm);
         break;
@@ -893,7 +893,7 @@ void QOSGViewerWidget::SetWire(OSGNodePtr node)
     osg::ref_ptr<osg::ShadeModel> sm(new osg::ShadeModel());
 
     poly->setMode(osg::PolygonMode::FRONT_AND_BACK,osg::PolygonMode::LINE);
-    sm->setMode(osg::ShadeModel::SMOOTH);
+    sm->setMode(osg::ShadeModel::FLAT);
 
     node->getOrCreateStateSet()->setAttribute(poly.get());
     node->getOrCreateStateSet()->setAttribute(sm.get());

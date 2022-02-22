@@ -20,6 +20,7 @@
 #include "osglodlabel.h"
 #include <osgUtil/SmoothingVisitor>
 #include <osg/BlendFunc>
+#include <osg/BlendEquation>
 #include <osg/PolygonOffset>
 #include <osg/LineStipple>
 #include <osg/Depth>
@@ -371,46 +372,22 @@ void KinBodyItem::Load()
                 w = 1.0f;
 
                 mat->setAmbient( osg::Material::FRONT_AND_BACK, osg::Vec4f(x,y,z,w) );
+                mat->setTransparency(osg::Material::FRONT_AND_BACK, transparency);
 
-                //mat->setShininess( osg::Material::FRONT, 25.0);
-                mat->setEmission(osg::Material::FRONT, osg::Vec4(0.0, 0.0, 0.0, 1.0));
+                state->setAttributeAndModes(mat);
 
-                // getting the object to be displayed with transparency
-                if (transparency > 0) {
-                    mat->setTransparency(osg::Material::FRONT_AND_BACK, transparency);
-                    state->setAttributeAndModes(new osg::BlendFunc(osg::BlendFunc::SRC_ALPHA, osg::BlendFunc::ONE_MINUS_SRC_ALPHA ));
-
-                    if( 1 ) {
-                        // fast
-                        state->setMode(GL_BLEND, osg::StateAttribute::ON);
-                        state->setRenderingHint(osg::StateSet::TRANSPARENT_BIN);
-                    }
-                    else {
-                        // slow
-                        //state->setAttribute(mat,osg::StateAttribute::ON | osg::StateAttribute::OVERRIDE);
-                        //state->setRenderBinDetails(0, "transparent");
-                        //ss->setRenderBinDetails(10, "RenderBin", osg::StateSet::USE_RENDERBIN_DETAILS);
-
-                        // Enable blending, select transparent bin.
-                        state->setMode( GL_BLEND, osg::StateAttribute::ON );
-                        state->setRenderingHint( osg::StateSet::TRANSPARENT_BIN );
-
-                        // Enable depth test so that an opaque polygon will occlude a transparent one behind it.
-                        state->setMode( GL_DEPTH_TEST, osg::StateAttribute::ON );
-
-                        // Conversely, disable writing to depth buffer so that
-                        // a transparent polygon will allow polygons behind it to shine thru.
-                        // OSG renders transparent polygons after opaque ones.
-                        osg::Depth* depth = new osg::Depth;
-                        depth->setWriteMask( false );
-                        state->setAttributeAndModes( depth, osg::StateAttribute::ON );
-
-                        // Disable conflicting modes.
-                        state->setMode( GL_LIGHTING, osg::StateAttribute::OFF );
-                    }
+                if (transparency == 0) {
+                    state->setAttributeAndModes(osg::ref_ptr<osg::BlendEquation>(new osg::BlendEquation(osg::BlendEquation::FUNC_ADD)));
+                    state->setAttributeAndModes(osg::ref_ptr<osg::BlendFunc>(new osg::BlendFunc(osg::BlendFunc::ONE, osg::BlendFunc::ZERO)));
+                    state->setAttributeAndModes(osg::ref_ptr<osg::Depth>(new osg::Depth(osg::Depth::LESS, 0, 1, true)));
                 }
-                state->setAttributeAndModes(mat, osg::StateAttribute::ON | osg::StateAttribute::OVERRIDE);
-                //pgeometrydata->setStateSet(state);
+                else {
+                    state->setRenderingHint(osg::StateSet::TRANSPARENT_BIN);
+
+                    state->setAttributeAndModes(osg::ref_ptr<osg::BlendEquation>(new osg::BlendEquation(osg::BlendEquation::FUNC_REVERSE_SUBTRACT)));
+                    state->setAttributeAndModes(osg::ref_ptr<osg::BlendFunc>(new osg::BlendFunc(osg::BlendFunc::SRC_ALPHA, osg::BlendFunc::ONE )));
+                    state->setAttributeAndModes(osg::ref_ptr<osg::Depth>(new osg::Depth(osg::Depth::LESS, 0, 1, false)));
+                }
 
                 switch(orgeom->GetType()) {
                 //  Geometry is defined like a Sphere

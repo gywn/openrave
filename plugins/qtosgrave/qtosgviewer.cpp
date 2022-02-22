@@ -1538,7 +1538,7 @@ void QtOSGViewer::_Draw(OSGSwitchPtr handle, osg::ref_ptr<osg::Vec3Array> vertic
 
     // don't do transparent bin since that is too slow for big point clouds...
     //geometry->getOrCreateStateSet()->setRenderBinDetails(0, "transparent");
-    geometry->getOrCreateStateSet()->setRenderingHint(bUsingTransparency ? osg::StateSet::TRANSPARENT_BIN : osg::StateSet::OPAQUE_BIN);
+    geometry->getOrCreateStateSet()->setRenderingHint(osg::StateSet::OPAQUE_BIN);
 
     geode->addDrawable(geometry.get());
 
