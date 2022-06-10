@@ -410,6 +410,8 @@ public:
     bool _RotateCameraYDirectionCommand(ostream& sout, istream& sinput);
     bool _PanCameraXDirectionCommand(ostream& sout, istream& sinput);
     bool _PanCameraYDirectionCommand(ostream& sout, istream& sinput);
+    bool _GetViewerState(ostream& sout, istream& sinput);
+    bool _SetViewerState(ostream& sout, istream& sinput);
 
     //@{ Message Queue
     std::map<ViewerCommandPriority, list<GUIThreadFunctionPtr>> _mapGUIFunctionLists; ///< map between priority and sublist for given priority level. protected by _mutexGUIFunctions

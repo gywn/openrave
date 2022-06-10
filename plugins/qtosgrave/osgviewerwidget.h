@@ -167,6 +167,8 @@ public:
     void SetCurrentCameraManipulator(osgGA::CameraManipulator* manipulator);
     void SetCameraDistanceToFocus(double distance);
     double GetCameraDistanceToFocus();
+    void SetCameraZoomFactor(float zoomFactor);
+    double GetCameraZoomFactor();
     void SetCameraCenter(osg::Vec3d);
     void RestoreDefaultManipulator();
     bool IsUsingDefaultCameraManipulator();
@@ -345,7 +347,7 @@ protected:
     double _zNear; ///< In OSG, znear and zfar are updated by CullVisitor, which
                    ///  causing getProjectionMatrixAsXXX to return negative
                    ///  values. Therefore, we manage zNear ourselves
-    double _currentOrthoFrustumSize; ///< coordinate for the right vertical clipping plane 
+    float _zoomFactor = 1.0;
 
     void GetSwitchedButtonValue(unsigned int &button);
 

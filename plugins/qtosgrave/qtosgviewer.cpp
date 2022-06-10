@@ -177,6 +177,9 @@ QtOSGViewer::QtOSGViewer(EnvironmentBasePtr penv, std::istream& sinput) : QMainW
     RegisterCommand("PanCameraYDirection", boost::bind(&QtOSGViewer::_PanCameraYDirectionCommand, this, _1, _2),
     "Pans the camera in the direction of the screen y vector, parallel to screen plane. The argument dy is in normalized coordinates 0 < dy < 1, where 1 means canvas height.");
 
+    RegisterCommand("GetViewerState", boost::bind(&QtOSGViewer::_GetViewerState, this, _1, _2), "");
+    RegisterCommand("SetViewerState", boost::bind(&QtOSGViewer::_SetViewerState, this, _1, _2), "");
+
     // Establish size limits per priority
     _mapGUIFunctionListLimits[ViewerCommandPriority::VERY_HIGH] = 100000;
     _mapGUIFunctionListLimits[ViewerCommandPriority::HIGH] = 100000;
@@ -1330,6 +1333,35 @@ bool QtOSGViewer::_PanCameraYDirectionCommand(ostream& sout, istream& sinput)
     sinput >> dy;
 
     _PostToGUIThread(boost::bind(&QtOSGViewer::_PanCameraYDirection, this, dy), ViewerCommandPriority::LOW);
+    return true;
+}
+
+bool QtOSGViewer::_GetViewerState(ostream& sout, istream& sinput)
+{
+    const auto p = GetCameraTransform();
+    sout << pos().x() << " " << pos().y()
+         << " " << size().width() << " " << size().height()
+         << " " << _posgWidget->IsInOrthoMode()
+         << " " << p.rot.x << " " << p.rot.y << " " << p.rot.z << " " << p.rot.w << " " << p.trans.x << " " << p.trans.y << " " << p.trans.z
+         << " " << GetCameraDistanceToFocus()
+         << " " << _posgWidget->GetCameraZoomFactor();
+    return true;
+}
+
+bool QtOSGViewer::_SetViewerState(ostream& sout, istream& sinput)
+{
+    int wx, wy, ww, wh, isOrtho;
+    float qw, qx, qy, qz, x, y, z, distance, zoomFactor;
+    sinput >> wx >> wy >> ww >> wh >> isOrtho >> qw >> qx >> qy >> qz >> x >> y >> z >> distance >> zoomFactor;
+
+    _PostToGUIThread([=] {
+            move(wx, wy);
+            resize(ww, wh);
+            _SetProjectionMode(isOrtho ? "orthogonal" : "perspective");
+            _SetCamera(RaveTransform<float>(RaveVector<float>(qw, qx, qy, qz), RaveVector<float>(x, y, z)), distance);
+            _posgWidget->SetCameraZoomFactor(zoomFactor);
+    }, ViewerCommandPriority::MEDIUM);
+
     return true;
 }
 
